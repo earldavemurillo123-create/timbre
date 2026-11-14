@@ -17,39 +17,46 @@
 
 ## Quick start
 
-Requires Python 3.10+ and [ffmpeg](https://ffmpeg.org/download.html) (for mp3/m4a/webm input).
+### What you need
+
+- **Python 3.12** exactly. Newer versions don't work yet: the PyTorch builds for Python 3.13+ need torchcodec and FFmpeg libraries to read audio, which the voice model can't load without.
+- About **3 GB** of free space and a decent internet connection: ~1 GB of packages plus the ~1.8 GB voice model on first start.
+- Optional: an **NVIDIA GPU**. Without one, Timbre runs on your CPU and takes a few seconds of work per second of speech.
+- Optional: [ffmpeg](https://ffmpeg.org/download.html) on PATH, only for mp3/m4a and browser-recorded clips. WAV uploads work without it.
+
+### Windows
+
+1. Install [Python 3.12](https://www.python.org/downloads/release/python-31210/) (tick "Add python.exe to PATH").
+2. Download this repository (**Code → Download ZIP**, then unzip) or `git clone` it.
+3. Double-click **`setup.bat`**. For an NVIDIA GPU, run `setup.bat cuda` from a terminal instead.
+4. Double-click **`run-timbre.bat`**. On the first start, type `y` to accept the model license when asked.
+
+Your browser opens http://127.0.0.1:7860 when the studio is ready. Keep the black window open while you use it.
+
+`run-demo.bat` starts the studio with a placeholder engine instead, which needs no model: handy for trying the interface.
+
+### macOS / Linux
 
 ```bash
 git clone https://github.com/earldavemurillo123-create/timbre.git
 cd timbre
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-# 1. Install PyTorch for your hardware: https://pytorch.org/get-started/locally/
-# 2. Install everything else
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-python cli.py serve
+python cli.py serve            # or: python cli.py --engine demo serve
 ```
 
-Open **http://127.0.0.1:7860**. The first launch downloads the XTTS-v2 weights (~1.8 GB) and asks you to accept the model license. To accept it in advance, set `COQUI_TOS_AGREED=1`.
+Open **http://127.0.0.1:7860**. The first start downloads the XTTS-v2 weights and asks you to accept the model license; set `COQUI_TOS_AGREED=1` to accept it in advance. On Linux, PyPI's `torch` already includes CUDA support for NVIDIA GPUs.
 
-### Windows shortcut
+### Troubleshooting
 
-Double-click these, in order:
-
-1. `run-demo.bat` sets up a virtual environment, installs the core packages and opens the studio with the demo engine.
-2. `install-voice-model.bat` installs PyTorch (CPU) and the XTTS model package.
-3. `run-timbre.bat` starts the studio with the real voice model.
-
-### Try it without a model
-
-```bash
-pip install fastapi "uvicorn[standard]" python-multipart numpy scipy
-python cli.py --engine demo serve
-```
-
-The demo engine produces a placeholder hum that follows the voice's pitch. It's useful for working on the interface or for machines without a GPU.
+| Problem | Fix |
+|---|---|
+| `torchcodec library is required` | You're on Python 3.13+ or a newer PyTorch. Use Python 3.12 and `requirements.txt`. |
+| `No module named 'six'` | Run `pip install -r requirements.txt` again; it includes it. |
+| Browser shows "can't be reached" | The model is still loading. Wait a minute and refresh. |
+| Generation is slow | Expected on CPU. An NVIDIA GPU with `setup.bat cuda` is much faster. |
+| Can't save a recorded clip | Recording needs ffmpeg on PATH. Upload a WAV file instead. |
 
 ## Command line
 

@@ -58,7 +58,7 @@ def main(argv: list[str] | None = None) -> int:
 
         from timbre.server import create_app
 
-        print(f"Timbre studio → http://{args.host}:{args.port}")
+        print(f"Timbre studio: http://{args.host}:{args.port}")
         uvicorn.run(create_app(settings), host=args.host, port=args.port)
         return 0
 
@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Deleted {args.voice_id}")
             return 0
 
-        print(f"Loading {studio.engine.label} on {studio.engine.device}…", file=sys.stderr)
+        print(f"Loading {studio.engine.label} on {studio.engine.device}...", file=sys.stderr)
         studio.load()
         if args.command == "speak":
             take = studio.speak(args.voice_id, args.text, args.language, args.speed)
@@ -94,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
             take = studio.batch(args.voice_id, script, args.language, args.speed)
 
         folder = settings.takes_dir / take.id
-        print(f"Take {take.number}: {take.duration:.1f}s → {folder / 'take.wav'}")
+        print(f"Take {take.number}: {take.duration:.1f}s, saved to {folder / 'take.wav'}")
         if args.out:
             shutil.copy(folder / "take.wav", args.out)
             print(f"Copied to {args.out}")

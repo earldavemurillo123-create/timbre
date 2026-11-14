@@ -45,7 +45,7 @@ def create_app(settings: Settings | None = None, studio: Studio | None = None) -
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        print(f"Loading {studio.engine.label} on {studio.engine.device}…")
+        print(f"Loading {studio.engine.label} on {studio.engine.device}...")
         studio.load()
         print("Ready.")
         yield
