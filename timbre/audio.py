@@ -57,10 +57,20 @@ def _to_float(data: np.ndarray) -> np.ndarray:
 
 
 def _decode_with_ffmpeg(path: Path, sr: int = 44100) -> tuple[np.ndarray, int]:
+    """Decode a non-WAV file: PyAV first (bundles its own decoders, no install
+    needed), then the ffmpeg command-line tool if it's on PATH."""
+    try:
+        return _decode_with_pyav(path, sr)
+    except ImportError:
+        pass
+    except Exception as exc:
+        if shutil.which("ffmpeg") is None:
+            raise AudioError(f"Couldn't decode {path.name}: {exc}") from exc
+
     if shutil.which("ffmpeg") is None:
         raise AudioError(
-            "This file isn't a plain WAV, and ffmpeg isn't installed to decode it. "
-            "Install ffmpeg or upload a .wav file."
+            "This file isn't a plain WAV and Timbre can't decode it here. "
+            "Run setup.bat again (it installs the audio decoder) or upload a .wav file."
         )
     cmd = ["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1", "-ar", str(sr), "-"]
     result = subprocess.run(cmd, capture_output=True)
@@ -68,6 +78,24 @@ def _decode_with_ffmpeg(path: Path, sr: int = 44100) -> tuple[np.ndarray, int]:
         message = result.stderr.decode(errors="ignore").strip().splitlines()
         raise AudioError(f"Couldn't decode {path.name}: {message[-1] if message else 'unknown error'}")
     return np.frombuffer(result.stdout, dtype=np.float32).copy(), sr
+
+
+def _decode_with_pyav(path: Path, sr: int) -> tuple[np.ndarray, int]:
+    import av  # optional dependency; ImportError means "not installed"
+
+    chunks: list[np.ndarray] = []
+    with av.open(str(path)) as container:
+        if not container.streams.audio:
+            raise AudioError(f"{path.name} has no audio track.")
+        resampler = av.AudioResampler(format="flt", layout="mono", rate=sr)
+        for frame in container.decode(audio=0):
+            for out in resampler.resample(frame):
+                chunks.append(out.to_ndarray().reshape(-1))
+        for out in resampler.resample(None):  # flush
+            chunks.append(out.to_ndarray().reshape(-1))
+    if not chunks:
+        raise AudioError(f"{path.name} contains no audio.")
+    return np.concatenate(chunks).astype(np.float32), sr
 
 
 # ---------------------------------------------------------------- processing

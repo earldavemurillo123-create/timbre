@@ -17,6 +17,7 @@ coqui-tts==0.28.0
 transformers==5.23.0
 soundfile==0.14.0
 six==1.17.0  # needed by coqui-tts but not declared by it
+av>=14  # decodes m4a/mp3/webm uploads without a separate ffmpeg install
 
 # Tests
 pytest>=8

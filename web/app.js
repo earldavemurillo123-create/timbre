@@ -51,9 +51,12 @@ const postJSON = (path, data) =>
 let audioCtx;
 const peakCache = new Map();
 
-async function peaksFromBuffer(arrayBuffer, bars = 160) {
+async function decodeAudio(arrayBuffer) {
   audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
-  const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+  return audioCtx.decodeAudioData(arrayBuffer);
+}
+
+function peaksFromDecoded(decoded, bars = 160) {
   const data = decoded.getChannelData(0);
   const size = Math.max(1, Math.floor(data.length / bars));
   const peaks = new Float32Array(bars);
@@ -65,6 +68,37 @@ async function peaksFromBuffer(arrayBuffer, bars = 160) {
   }
   const max = Math.max(...peaks, 1e-4);
   return { peaks: peaks.map((p) => Math.pow(p / max, 0.7)), duration: decoded.duration };
+}
+
+async function peaksFromBuffer(arrayBuffer, bars = 160) {
+  return peaksFromDecoded(await decodeAudio(arrayBuffer), bars);
+}
+
+// Convert decoded audio to a mono 16-bit WAV at 22.05 kHz, so the server can read
+// browser recordings (WebM/Ogg) and MP3/M4A files without needing ffmpeg.
+async function toWav(decoded, sampleRate = 22050) {
+  const length = Math.ceil(decoded.duration * sampleRate);
+  const offline = new OfflineAudioContext(1, length, sampleRate);
+  const source = offline.createBufferSource();
+  source.buffer = decoded;
+  source.connect(offline.destination); // mixes all channels down to mono
+  source.start();
+  const rendered = await offline.startRendering();
+  const samples = rendered.getChannelData(0);
+
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  const text = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  text(0, "RIFF"); view.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVE");
+  text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  text(36, "data"); view.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) {
+    const v = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true);
+  }
+  return new Blob([buffer], { type: "audio/wav" });
 }
 
 async function peaksFromUrl(url, bars) {
@@ -449,14 +483,20 @@ function clearDialogWave() {
 
 async function useClip(blob, filename) {
   clip.blob = blob; clip.filename = filename;
+  const isWav = /\.wav$/i.test(filename) || blob.type === "audio/wav";
   try {
-    const { peaks, duration } = await peaksFromBuffer(await blob.arrayBuffer(), 90);
+    const decoded = await decodeAudio(await blob.arrayBuffer());
+    const { peaks, duration } = peaksFromDecoded(decoded, 90);
     drawWave($("#dialog-wave"), peaks, COLORS.dialog);
+    if (!isWav) {
+      clip.blob = await toWav(decoded);
+      clip.filename = filename.replace(/\.[^.]+$/, "") + ".wav";
+    }
     const hint = duration < 6 ? " That's short; 10–30 seconds gives a closer match." :
                  duration > 30 ? " Only the first 30 seconds of speech are used." : "";
     $("#clip-info").textContent = `${filename}, ${duration.toFixed(1)} seconds.${hint}`;
   } catch {
-    $("#clip-info").textContent = `${filename}. Your browser can't preview this format, but the server may still read it.`;
+    $("#clip-info").textContent = `${filename}. Your browser can't read this format; if saving fails, upload a .wav file.`;
   }
   if (!$("#voice-name").value.trim()) {
     $("#voice-name").value = filename.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60);

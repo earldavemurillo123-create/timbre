@@ -153,6 +153,15 @@ def create_app(settings: Settings | None = None, studio: Studio | None = None) -
 
     # ------------------------------------------------------------- web UI
 
+    @app.middleware("http")
+    async def no_stale_ui(request, call_next):
+        # Make browsers re-check the page files on every load, so an update to the
+        # studio never runs against an old cached copy of app.js or style.css.
+        response = await call_next(request)
+        if not request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
     app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
     return app
 

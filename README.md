@@ -22,7 +22,7 @@
 - **Python 3.12** exactly. Newer versions don't work yet: the PyTorch builds for Python 3.13+ need torchcodec and FFmpeg libraries to read audio, which the voice model can't load without.
 - About **3 GB** of free space and a decent internet connection: ~1 GB of packages plus the ~1.8 GB voice model on first start.
 - Optional: an **NVIDIA GPU**. Without one, Timbre runs on your CPU and takes a few seconds of work per second of speech.
-- Optional: [ffmpeg](https://ffmpeg.org/download.html) on PATH, only for mp3/m4a and browser-recorded clips. WAV uploads work without it.
+- Optional: [ffmpeg](https://ffmpeg.org/download.html) on PATH, only for unusual audio formats. Recordings, WAV, MP3 and M4A work without it.
 
 ### Windows
 
@@ -56,7 +56,7 @@ Open **http://127.0.0.1:7860**. The first start downloads the XTTS-v2 weights an
 | `No module named 'six'` | Run `pip install -r requirements.txt` again; it includes it. |
 | Browser shows "can't be reached" | The model is still loading. Wait a minute and refresh. |
 | Generation is slow | Expected on CPU. An NVIDIA GPU with `setup.bat cuda` is much faster. |
-| Can't save a recorded clip | Recording needs ffmpeg on PATH. Upload a WAV file instead. |
+| A clip in an unusual format won't save | The browser converts recordings, MP3 and M4A to WAV automatically. For other formats, convert to WAV first or install ffmpeg. |
 
 ## Command line
 

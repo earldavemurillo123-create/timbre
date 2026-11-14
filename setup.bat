@@ -57,7 +57,7 @@ if /i "%~1"=="cuda" (
 
 rem ---------------------------------------------------------------- check
 echo Checking the install ...
-"%PY%" -c "import torch, TTS.api, fastapi; print('torch', torch.__version__, '| GPU:', torch.cuda.is_available())" >> "%LOG%" 2>&1 || goto fail
+"%PY%" -c "import torch, TTS.api, fastapi, av; print('torch', torch.__version__, '| GPU:', torch.cuda.is_available())" >> "%LOG%" 2>&1 || goto fail
 "%PY%" -c "import torch; print('Ready. PyTorch', torch.__version__, '| NVIDIA GPU:', 'yes' if torch.cuda.is_available() else 'no (runs on CPU)')"
 echo SETUP OK >> "%LOG%"
 echo.
