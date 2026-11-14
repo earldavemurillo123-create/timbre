@@ -1,0 +1,5 @@
+# Example batch script: one line per clip. Lines starting with # are skipped.
+In this town, nobody sleeps.
+Not even the mayor, who counts the streetlights every night.
+The bakery opens at midnight, and the line goes around the block.
+Nobody knows who bakes the bread.

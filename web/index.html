@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timbre — voice cloning studio</title>
+  <meta name="description" content="Clone a voice from a short clip and generate speech locally.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="/" aria-label="Timbre home">
+      <svg class="wordmark__mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="12" width="3" height="8" rx="1.5"/><rect x="9" y="7" width="3" height="18" rx="1.5"/>
+        <rect x="15" y="3" width="3" height="26" rx="1.5"/><rect x="21" y="9" width="3" height="14" rx="1.5"/>
+        <rect x="27" y="13" width="3" height="6" rx="1.5"/>
+      </svg>
+      Timbre
+    </a>
+    <p class="engine" id="engine" role="status">
+      <span class="engine__lamp" aria-hidden="true"></span>
+      <span id="engine-text">Connecting to engine…</span>
+    </p>
+  </header>
+
+  <p class="demo-note" id="demo-note" hidden>
+    You're running the demo engine, so takes are a placeholder hum that follows the voice's pitch.
+    Start Timbre with the XTTS engine for real cloning.
+  </p>
+
+  <main class="studio">
+    <!-- ============ Voice ============ -->
+    <section class="booth" aria-labelledby="booth-title">
+      <div class="booth__head">
+        <h2 id="booth-title" class="booth__title">Voice</h2>
+        <button class="btn btn--ghost" id="add-voice-btn" type="button">Add a voice</button>
+      </div>
+
+      <div class="print" id="print">
+        <canvas class="print__wave" id="print-wave" aria-hidden="true"></canvas>
+        <div class="print__empty" id="print-empty">
+          <p class="print__empty-title">No voice yet</p>
+          <p>Upload or record 10–30 seconds of one person speaking clearly. Timbre learns the voice from that clip.</p>
+          <button class="btn btn--rec" id="empty-add-btn" type="button">Add your first voice</button>
+        </div>
+        <div class="print__meta" id="print-meta" hidden>
+          <button class="play" id="print-play" type="button" aria-label="Play reference clip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5.5v13l10.5-6.5z"/><path class="i-pause" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+          </button>
+          <div>
+            <p class="print__name" id="print-name"></p>
+            <p class="print__detail" id="print-detail"></p>
+          </div>
+        </div>
+      </div>
+
+      <ul class="voices" id="voice-list" aria-label="Saved voices"></ul>
+    </section>
+
+    <!-- ============ Script ============ -->
+    <section class="desk" aria-labelledby="desk-title">
+      <h2 id="desk-title" class="visually-hidden">Script</h2>
+      <div class="modes" role="tablist" aria-label="What to generate">
+        <button class="modes__tab" role="tab" id="tab-single" aria-selected="true" aria-controls="panel-text" data-mode="single">One take</button>
+        <button class="modes__tab" role="tab" id="tab-batch" aria-selected="false" aria-controls="panel-text" data-mode="batch">Script, line by line</button>
+      </div>
+
+      <form class="script" id="script-form" novalidate>
+        <div id="panel-text" role="tabpanel" aria-labelledby="tab-single">
+          <label class="visually-hidden" for="script-text">Text to speak</label>
+          <textarea id="script-text" class="script__text" rows="9" maxlength="5000" spellcheck="true"
+            placeholder="Write what the voice should say."></textarea>
+          <p class="script__hint" id="script-hint">Long text is split into sentences and joined with short pauses.</p>
+        </div>
+
+        <div class="controls">
+          <label class="field">
+            <span class="field__label">Language</span>
+            <select id="language" class="field__select"></select>
+          </label>
+          <label class="field field--speed">
+            <span class="field__label">Speed <output id="speed-out" for="speed">1.00×</output></span>
+            <input id="speed" type="range" min="0.5" max="2" step="0.05" value="1">
+          </label>
+          <p class="counter" id="counter" aria-live="polite">0 / 5000</p>
+        </div>
+
+        <div class="script__go">
+          <button class="btn btn--rec btn--big" id="generate-btn" type="submit">
+            <span class="btn__lamp" aria-hidden="true"></span>
+            <span id="generate-label">Generate take</span>
+          </button>
+          <p class="script__shortcut"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+        </div>
+        <p class="error" id="generate-error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <!-- ============ Takes ============ -->
+    <section class="takes" aria-labelledby="takes-title">
+      <h2 id="takes-title" class="takes__title">Takes</h2>
+      <ol class="takes__list" id="take-list" reversed></ol>
+      <p class="takes__empty" id="takes-empty">Your generated takes appear here, newest first. Each one comes with a WAV file and matching subtitles.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Only clone voices you have permission to use. Every file Timbre generates is tagged as synthetic speech.</p>
+  </footer>
+
+  <!-- ============ Add voice dialog ============ -->
+  <dialog class="dialog" id="voice-dialog" aria-labelledby="dialog-title">
+    <form class="dialog__body" id="voice-form" method="dialog" novalidate>
+      <h2 class="dialog__title" id="dialog-title">Add a voice</h2>
+
+      <label class="field">
+        <span class="field__label">Name</span>
+        <input id="voice-name" class="field__input" type="text" maxlength="60" placeholder="e.g. Narrator" required autocomplete="off">
+      </label>
+
+      <div class="source">
+        <label class="drop" id="drop">
+          <input id="voice-file" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.webm" class="visually-hidden">
+          <span class="drop__title">Choose a clip</span>
+          <span class="drop__hint">or drop an audio file here</span>
+        </label>
+        <button class="rec" id="rec-btn" type="button" aria-pressed="false">
+          <span class="rec__dot" aria-hidden="true"></span>
+          <span id="rec-label">Record</span>
+          <span class="rec__time" id="rec-time">0:00</span>
+        </button>
+      </div>
+
+      <canvas class="dialog__wave" id="dialog-wave" aria-hidden="true"></canvas>
+      <p class="dialog__clip" id="clip-info">Clean speech works best: one speaker, no music, little echo.</p>
+
+      <label class="consent">
+        <input type="checkbox" id="voice-consent">
+        <span>This is my voice, or I have the speaker's permission to clone it.</span>
+      </label>
+
+      <p class="error" id="voice-error" role="alert" hidden></p>
+
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" type="button" id="voice-cancel">Cancel</button>
+        <button class="btn btn--ink" type="submit" id="voice-save">Save voice</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>

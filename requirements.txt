@@ -1,0 +1,14 @@
+# Core (web studio, CLI, demo engine)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+numpy>=1.26
+scipy>=1.11
+
+# Real voice cloning (XTTS-v2). Install PyTorch first for your GPU/CPU:
+#   https://pytorch.org/get-started/locally/
+coqui-tts>=0.24
+
+# Development
+pytest>=8
+httpx>=0.27

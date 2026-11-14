@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Your voices and generated audio stay on your machine
+data/
+
+# Model weights and caches
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local setup logs
+*-log.txt
+publish-to-github.bat
