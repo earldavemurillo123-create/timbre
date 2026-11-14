@@ -105,9 +105,9 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 const COLORS = {
-  print: { base: "#cfe3d6", played: "#ff6a55" },
-  take: { base: "#b7c2bb", played: "#d33a2a" },
-  dialog: { base: "#cfe3d6", played: "#cfe3d6" },
+  print: { base: "#3d63e6", played: "#ffffff", gap: 4 },
+  take: { base: "#b9c3d6", played: "#2357ff", gap: 2 },
+  dialog: { base: "#7fa0ff", played: "#7fa0ff" },
 };
 
 // ------------------------------------------------------------------ shared player
@@ -270,9 +270,9 @@ async function renderPrint() {
   printOwner = { url, button: $("#print-play"), canvas, peaks: null, colors: COLORS.print };
   const owner = printOwner;
   try {
-    const { peaks } = await peaksFromUrl(url, 120);
+    const { peaks } = await peaksFromUrl(url, 64);
     owner.peaks = peaks;
-    if (printOwner === owner) drawWave(canvas, peaks, { ...COLORS.print, gap: 3 });
+    if (printOwner === owner) drawWave(canvas, peaks, COLORS.print);
   } catch { /* browser couldn't decode; leave blank */ }
 }
 
@@ -521,7 +521,7 @@ async function startRecording() {
     let sum = 0; for (const v of buf) sum += v * v;
     levels.copyWithin(0, 1);
     levels[levels.length - 1] = Math.min(1, Math.sqrt(sum / buf.length) * 6);
-    drawWave(canvas, levels, { base: "#ff8a78", played: "#ff8a78" });
+    drawWave(canvas, levels, { base: "#ffffff", played: "#ffffff" });
     const secs = (performance.now() - rec.started) / 1000;
     $("#rec-time").textContent = `0:${String(Math.floor(secs)).padStart(2, "0")}`;
     if (secs >= MAX_RECORD_SECONDS) { stopRecording(); return; }

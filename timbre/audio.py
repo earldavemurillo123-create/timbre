@@ -10,6 +10,7 @@ import io
 import shutil
 import struct
 import subprocess
+import warnings
 from math import gcd
 from pathlib import Path
 
@@ -31,7 +32,9 @@ def load_audio(path: str | Path, target_sr: int | None = None) -> tuple[np.ndarr
         raise AudioError(f"File not found: {path}")
 
     try:
-        sr, data = wavfile.read(path)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", wavfile.WavFileWarning)  # our own LIST/INFO tag
+            sr, data = wavfile.read(path)
         audio = _to_float(data)
     except Exception:
         audio, sr = _decode_with_ffmpeg(path)

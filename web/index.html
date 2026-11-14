@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="band">
   <header class="topbar">
     <a class="wordmark" href="/" aria-label="Timbre home">
       <svg class="wordmark__mark" viewBox="0 0 32 32" aria-hidden="true">
@@ -26,6 +27,7 @@
       <span id="engine-text">Connecting to engine…</span>
     </p>
   </header>
+  </div>
 
   <p class="demo-note" id="demo-note" hidden>
     You're running the demo engine, so takes are a placeholder hum that follows the voice's pitch.
@@ -36,7 +38,7 @@
     <!-- ============ Voice ============ -->
     <section class="booth" aria-labelledby="booth-title">
       <div class="booth__head">
-        <h2 id="booth-title" class="booth__title">Voice</h2>
+        <h2 id="booth-title" class="panel-title"><span class="step" aria-hidden="true">1</span>Voice</h2>
         <button class="btn btn--ghost" id="add-voice-btn" type="button">Add a voice</button>
       </div>
 
@@ -45,7 +47,7 @@
         <div class="print__empty" id="print-empty">
           <p class="print__empty-title">No voice yet</p>
           <p>Upload or record 10–30 seconds of one person speaking clearly. Timbre learns the voice from that clip.</p>
-          <button class="btn btn--rec" id="empty-add-btn" type="button">Add your first voice</button>
+          <button class="btn btn--primary" id="empty-add-btn" type="button">Add your first voice</button>
         </div>
         <div class="print__meta" id="print-meta" hidden>
           <button class="play" id="print-play" type="button" aria-label="Play reference clip">
@@ -63,10 +65,12 @@
 
     <!-- ============ Script ============ -->
     <section class="desk" aria-labelledby="desk-title">
-      <h2 id="desk-title" class="visually-hidden">Script</h2>
-      <div class="modes" role="tablist" aria-label="What to generate">
-        <button class="modes__tab" role="tab" id="tab-single" aria-selected="true" aria-controls="panel-text" data-mode="single">One take</button>
-        <button class="modes__tab" role="tab" id="tab-batch" aria-selected="false" aria-controls="panel-text" data-mode="batch">Script, line by line</button>
+      <div class="desk__head">
+        <h2 id="desk-title" class="panel-title"><span class="step" aria-hidden="true">2</span>Script</h2>
+        <div class="modes" role="tablist" aria-label="What to generate">
+          <button class="modes__tab" role="tab" id="tab-single" aria-selected="true" aria-controls="panel-text" data-mode="single">One take</button>
+          <button class="modes__tab" role="tab" id="tab-batch" aria-selected="false" aria-controls="panel-text" data-mode="batch">Line by line</button>
+        </div>
       </div>
 
       <form class="script" id="script-form" novalidate>
@@ -90,7 +94,7 @@
         </div>
 
         <div class="script__go">
-          <button class="btn btn--rec btn--big" id="generate-btn" type="submit">
+          <button class="btn btn--primary btn--big" id="generate-btn" type="submit">
             <span class="btn__lamp" aria-hidden="true"></span>
             <span id="generate-label">Generate take</span>
           </button>
@@ -102,7 +106,7 @@
 
     <!-- ============ Takes ============ -->
     <section class="takes" aria-labelledby="takes-title">
-      <h2 id="takes-title" class="takes__title">Takes</h2>
+      <h2 id="takes-title" class="panel-title"><span class="step" aria-hidden="true">3</span>Takes</h2>
       <ol class="takes__list" id="take-list" reversed></ol>
       <p class="takes__empty" id="takes-empty">Your generated takes appear here, newest first. Each one comes with a WAV file and matching subtitles.</p>
     </section>
@@ -147,7 +151,7 @@
 
       <div class="dialog__actions">
         <button class="btn btn--ghost" type="button" id="voice-cancel">Cancel</button>
-        <button class="btn btn--ink" type="submit" id="voice-save">Save voice</button>
+        <button class="btn btn--primary" type="submit" id="voice-save">Save voice</button>
       </div>
     </form>
   </dialog>
